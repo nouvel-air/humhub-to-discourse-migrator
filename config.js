@@ -6,5 +6,6 @@ module.exports = {
   HUMHUB_URL: process.env.HUMHUB_URL,
   HUMHUB_TOKEN: process.env.HUMHUB_TOKEN,
   YESWIKI_URL: process.env.YESWIKI_URL,
-  DISCOURSE_URL: process.env.DISCOURSE_URL
+  DISCOURSE_URL: process.env.DISCOURSE_URL,
+  DISCOURSE_API_KEY: process.env.DISCOURSE_API_KEY
 };

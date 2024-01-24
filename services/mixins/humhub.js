@@ -80,7 +80,6 @@ module.exports = {
       do {
         page++;
         results = await this.fetch(`${url}?per-page=100&page=${page}`);
-        console.log('results', results);
         data.push(...results.results);
       } while (results.links.next);
 

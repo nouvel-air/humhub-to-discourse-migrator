@@ -6,7 +6,7 @@ const { getSlugByUrl, replaceEmojisByUnicode } = require("../utils");
 
 module.exports = {
   name: 'post',
-  mixins: [SpaceManagerMixin, HumHubImporterMixin],
+  mixins: [/*SpaceManagerMixin,*/ HumHubImporterMixin],
   settings: {
     source: {
       humhub: {

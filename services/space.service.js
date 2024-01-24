@@ -15,6 +15,7 @@ module.exports = {
   },
   methods: {
     async migrate(data) {
+      console.log('space', data)
     }
   }
 };
