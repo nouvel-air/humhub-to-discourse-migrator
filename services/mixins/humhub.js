@@ -2,7 +2,7 @@ const urlJoin = require('url-join');
 const ImporterMixin = require('./importer');
 const { convertToIsoString } = require('../../utils');
 
-const allowedTypes = ['user', 'space', 'calendar', 'post'];
+const allowedTypes = ['user', 'space', 'calendar', 'post', 'wiki'];
 
 const getSlugByUrl = url => {
   if (url) {
@@ -21,7 +21,8 @@ module.exports = {
       humhub: {
         baseUrl: null,
         jwtToken: null,
-        type: null // 'user', 'space', 'calendar', 'post'
+        type: null, // 'user', 'space', 'calendar', 'post'
+        containerId: null
       },
       fieldsMapping: {
         // We don't use arrow function as we need to have access to this.settings
@@ -53,17 +54,23 @@ module.exports = {
     }
   },
   created() {
-    const { baseUrl, jwtToken, type } = this.settings.source.humhub;
+    const { baseUrl, jwtToken, type, containerId } = this.settings.source.humhub;
 
     if (!jwtToken) throw new Error('The source.humhub.jwtSettings setting is missing');
     if (!allowedTypes.includes(type))
       throw new Error(`Only the following types are allowed: ${allowedTypes.join(', ')}`);
 
     this.settings.source.headers.Authorization = `Bearer ${jwtToken}`;
+    
+    let apiPath;
+    if (type === 'post' && containerId) {
+      apiPath = `/api/v1/post/container/${containerId}`;
+    } else {
+      apiPath = `/api/v1/${type}`;
+    }
 
-    const apiPath = `/api/v1/${type}`;
     this.settings.source.apiUrl = urlJoin(baseUrl, apiPath);
-    this.settings.source.getAllFull = this.settings.source.apiUrl;
+      this.settings.source.getAllFull = this.settings.source.apiUrl;
 
     if (type === 'calendar') {
       this.settings.source.getOneFull = data => `${this.settings.source.apiUrl}/entry/${data.id}`;
@@ -84,14 +91,14 @@ module.exports = {
       } while (results.links.next);
 
       // Append the members to the result
-      if (this.settings.source.humhub.type === 'space') {
-        for (const key of data.keys()) {
-          // TODO use the list method but avoid a loop ? Maybe set another importer for memberships
-          // Currently if there is more than 100 members, it will fail to get them all
-          const members = await this.fetch(urlJoin(url, `${data[key].id}`, 'membership'));
-          data[key].members = members.results;
-        }
-      }
+      // if (this.settings.source.humhub.type === 'space') {
+      //   for (const key of data.keys()) {
+      //     // TODO use the list method but avoid a loop ? Maybe set another importer for memberships
+      //     // Currently if there is more than 100 members, it will fail to get them all
+      //     const members = await this.fetch(urlJoin(url, `${data[key].id}`, 'membership'));
+      //     data[key].members = members.results;
+      //   }
+      // }
 
       return data;
     },

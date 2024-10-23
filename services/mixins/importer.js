@@ -95,18 +95,6 @@ module.exports = {
 
       this.logger.info(`Import finished !`);
     },
-    synchronize() {
-      if (this.createJob) {
-        this.createJob(this.name, 'synchronize', {});
-      } else {
-        // If QueueMixin is not available, call method with fake job object
-        return this.processSynchronize({
-          data: {},
-          progress: number => this.logger.info(`Progress: ${number}%`),
-          log: message => this.logger.info(message)
-        });
-      }
-    },
     async importOne(ctx) {
       let { sourceUri, data } = ctx.params;
 

@@ -4,6 +4,7 @@ const HumHubImporterMixin = require('./mixins/humhub');
 const ProfileManagerMixin = require('./mixins/profile-manager');
 const DiscourseMixin = require('./mixins/discourse');
 const CONFIG = require("../config");
+const { frenchAddressSearch, swissAddressSearch, mapboxAddressSearch } = require("../utils");
 
 const delay = async t => new Promise(resolve => setTimeout(resolve, t));
 
@@ -43,7 +44,6 @@ module.exports = {
           console.log(result.deleted);
         }
       }
-
     },
   },
   methods: {
@@ -55,8 +55,28 @@ module.exports = {
 
       const user = await this.fetchDiscourse(`/u/${data.account.username}.json`);
 
+      const geoLocation = await this.getGeoLocation(data.profile);
+
       if (user) {
         this.logger.info(`User (${data.account.username}) already exist, skipping...`);
+
+        if (geoLocation) {
+          await this.fetchDiscourse(`/u/${data.account.username}.json`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              ...user,
+              custom_fields: {
+                geo_location: geoLocation
+              }
+            })
+          });
+        } else {
+          console.log('No geo location found for ', data);
+        }
+
         return
       }
 
@@ -79,6 +99,9 @@ module.exports = {
           // See https://meta.discourse.org/t/how-to-change-user-fields-with-api/147999
           // 'user_fields[1]': data.profile.competences,
           // external_ids
+          custom_fields: {
+            geo_location: geoLocation
+          }
         })
       });
 
@@ -124,31 +147,72 @@ module.exports = {
         this.logger.warn(`Could not post user ${data.account.username}`)
         console.log(result)
       }
+    },
+    async getGeoLocation({ country, street, zip, city }) {
+      const queryArray = [];
+      if (street) queryArray.push(street + ',');
+      if (zip) queryArray.push(zip);
+      if (city) queryArray.push(city);
+      const query = queryArray.join(' ');
 
-      // const location = {
-      //   street: data.profile.street,
-      //   city: data.profile.city,
-      //   zip: data.profile.zip,
-      //   country: data.profile.country
-      // };
+      if (country === 'FR') {
+        let feature;
+        if (street) {
+          const features = await frenchAddressSearch(query);
+          feature = features?.find(feat => feat.properties.type === 'street' || feat.properties.type === 'housenumber');
+        } else if (city) {
+          const features = await frenchAddressSearch(query, 'municipality');
+          feature = features?.find(feat => feat.properties.type === 'municipality');
+        } else if (zip) {
+          const features = await frenchAddressSearch(query, 'municipality');
+          feature = features?.find(feat => feat.properties.type === 'municipality');
+        }
 
+        return feature && {
+          lon: feature.geometry?.coordinates[0],
+          lat: feature.geometry?.coordinates[1],
+          address: feature.properties.label,
+          city: feature.properties.city,
+          state: feature.properties.context.split(', ')?.slice(-1)?.[0],
+          country_code: 'fr',
+          country: 'France',
+          postalcode: feature.properties.postcode,
+          type: 'administrative'
+        };
+      } else if (country === 'CH') {
+        const address = await swissAddressSearch(query);
 
-      // return({
-      //   type: 'pair:Person',
-      //   'pair:label': `${data.profile.firstname} ${data.profile.lastname}`,
-      //   'pair:description': data.profile.about,
-      //   'pair:firstName': data.profile.firstname,
-      //   'pair:lastName': data.profile.lastname,
-      //   'pair:phone': data.profile.mobile || data.profile.phone_work || data.profile.phone_private || undefined,
-      //   'pair:webPage': data.url,
-      //   'pair:homePage': [data.profile.url, data.profile.url_facebook, data.profile.url_linkedin].filter(x => x),
-      //   'pair:e-mail': data.account.email,
-      //   'pair:depictedBy': image,
-      //   'pair:hasLocation': location,
-      //   'pair:affiliatedBy': urlJoin(CONFIG.HOME_URL, 'circles', 'jardiniers-du-nous'),
-      //   'pair:hasInterest': themes,
-      //   // 'semapps:humhubId': data.account.contentcontainer_id,
-      // })
+        return address && {
+          lon: address.position?.lng,
+          lat: address.position?.lat,
+          address: query,
+          city: address.cityName,
+          state: address.cantonCode,
+          country_code: 'ch',
+          country: 'Switzerland',
+          postalcode: address.postalCode,
+          type: 'administrative'
+        }
+      } else {
+        const feature = await mapboxAddressSearch(query);
+
+        const postCode = feature?.context?.find(ctx => ctx.id.startsWith('postcode.'));
+        const city = feature?.context?.find(ctx => ctx.id.startsWith('place.'));
+        const state = feature?.context?.find(ctx => ctx.id.startsWith('region.'));
+        const country = feature?.context?.find(ctx => ctx.id.startsWith('country.'));
+
+        return feature && {
+          lon: feature.center?.[0],
+          lat: feature.center?.[1],
+          address: feature.place_name,
+          postalcode: postCode?.text,
+          city: city?.text,
+          state: state?.text,
+          country_code: country?.short_code,
+          country: country?.text,
+          type: 'administrative'
+        }
+      }
     }
   }
 };
