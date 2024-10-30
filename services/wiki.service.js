@@ -1,9 +1,9 @@
-const urlJoin = require("url-join");
+const urlJoin = require('url-join');
 const HumHubImporterMixin = require('./mixins/humhub');
 const SpaceManagerMixin = require('./mixins/space-manager');
 const DiscourseMixin = require('./mixins/discourse');
-const CONFIG = require("../config");
-const { formatMessage, displayNameToUserName, convertToIsoString } = require("../utils");
+const CONFIG = require('../config');
+const { formatMessage, displayNameToUserName, convertToIsoString } = require('../utils');
 
 module.exports = {
   name: 'wiki',
@@ -13,13 +13,13 @@ module.exports = {
       humhub: {
         baseUrl: CONFIG.HUMHUB_URL,
         jwtToken: CONFIG.HUMHUB_TOKEN,
-        type: 'wiki',
+        type: 'wiki'
       }
-    },
+    }
   },
   methods: {
     async migrate(data) {
-      console.log('data', data.title)
+      console.log('data', data.title);
 
       // Only import wiki resources from "Salle commune" space
       const space = this.getSpaceByContainerId(data.content.metadata.contentcontainer_id);

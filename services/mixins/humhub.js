@@ -61,7 +61,7 @@ module.exports = {
       throw new Error(`Only the following types are allowed: ${allowedTypes.join(', ')}`);
 
     this.settings.source.headers.Authorization = `Bearer ${jwtToken}`;
-    
+
     let apiPath;
     if (type === 'post' && containerId) {
       apiPath = `/api/v1/post/container/${containerId}`;
@@ -70,7 +70,7 @@ module.exports = {
     }
 
     this.settings.source.apiUrl = urlJoin(baseUrl, apiPath);
-      this.settings.source.getAllFull = this.settings.source.apiUrl;
+    this.settings.source.getAllFull = this.settings.source.apiUrl;
 
     if (type === 'calendar') {
       this.settings.source.getOneFull = data => `${this.settings.source.apiUrl}/entry/${data.id}`;

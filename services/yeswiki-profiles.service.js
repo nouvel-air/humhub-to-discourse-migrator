@@ -1,5 +1,5 @@
 const YesWikiImporterMixin = require('./mixins/yeswiki');
-const CONFIG = require("../config");
+const CONFIG = require('../config');
 
 module.exports = {
   name: 'wiki-profiles',

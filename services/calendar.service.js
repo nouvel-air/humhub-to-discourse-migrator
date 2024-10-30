@@ -1,8 +1,8 @@
-const urlJoin = require("url-join");
+const urlJoin = require('url-join');
 const HumHubImporterMixin = require('./mixins/humhub');
 const SpaceManagerMixin = require('./mixins/space-manager');
-const CONFIG = require("../config");
-const { getSlugByUrl, replaceEmojisByUnicode, convertToIsoString } = require("../utils");
+const CONFIG = require('../config');
+const { getSlugByUrl, replaceEmojisByUnicode, convertToIsoString } = require('../utils');
 
 module.exports = {
   name: 'calendar',
@@ -12,20 +12,18 @@ module.exports = {
       humhub: {
         baseUrl: CONFIG.HUMHUB_URL,
         jwtToken: CONFIG.HUMHUB_TOKEN,
-        type: 'calendar',
+        type: 'calendar'
       }
-    },
+    }
   },
   methods: {
     async migrate(data) {
       // const humhubSpace = this.getSpaceByContainerId(data.content.metadata.contentcontainer_id);
       // if (!humhubSpace) return false;
-
       // const circleExist = await this.broker.call('ldp.resource.exist', {
       //   resourceUri: humhubSpace.circleUri,
       //   webId: 'system'
       // });
-
       // return({
       //   type: 'pair:Event',
       //   'pair:label': data.title,
