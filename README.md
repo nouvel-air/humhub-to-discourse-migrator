@@ -12,7 +12,7 @@ Copy the `.env` file to `.env.local` and setup your keys and URLs.
 
 In your Discourse instance, go to the Parameters > Rate limits, and remove as many limits as possible.
 
-## Import users
+### Migrate users
 
 If you want to show the user's location, you will need to install the [Location plugin](https://github.com/paviliondev/discourse-locations)
 
@@ -20,7 +20,7 @@ If you want to show the user's location, you will need to install the [Location 
 call space.freshImport
 ```
 
-## Import group members
+### Migrate group members
 
 Create groups in your Discourse instance.
 
@@ -30,7 +30,7 @@ Edit the `groupsMapping` and `groupsNameMapping` object in the [mappings.js](./m
 call space.freshImport
 ```
 
-## Import posts
+### Migrate posts
 
 Create categories in your Discourse instance.
 
@@ -40,7 +40,7 @@ Edit the `categoriesMapping` object in the [mappings.js](./mappings.js) file.
 call post.freshImport
 ```
 
-## Import events
+### Migrate events
 
 If you want to use the calendar, you will need to install the official [Calendar plugin](https://github.com/discourse/discourse-calendar)
 
@@ -48,7 +48,7 @@ If you want to use the calendar, you will need to install the official [Calendar
 call calendar.freshImport
 ```
 
-## Import wiki pages
+### Migrate wiki pages
 
 ```
 call wiki.freshImport
