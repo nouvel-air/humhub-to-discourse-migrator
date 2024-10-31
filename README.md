@@ -4,13 +4,20 @@
 
 This is a very rough migrator, which has been used so far with https://forum.jardiniersdunous.org
 
+## Usage
+
 Below are some instructions on how to make it work. Use at your own risk ! ;)
 
-## Usage
+### Preparation
 
 Copy the `.env` file to `.env.local` and setup your keys and URLs.
 
-In your Discourse instance, go to the Parameters > Rate limits, and remove as many limits as possible.
+In your Discourse instance, go to the Parameters > Rate limits, and remove as many limits as possible (otherwise you will not be able to import many data).
+
+```
+yarn install
+yarn run dev
+```
 
 ### Migrate users
 
