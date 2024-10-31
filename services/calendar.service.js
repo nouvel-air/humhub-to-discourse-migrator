@@ -1,12 +1,14 @@
-const urlJoin = require('url-join');
 const HumHubImporterMixin = require('./mixins/humhub');
 const SpaceManagerMixin = require('./mixins/space-manager');
+const DiscourseMixin = require('./mixins/discourse');
+const PostFormatterMixin = require('./mixins/post-formatter');
 const CONFIG = require('../config');
-const { getSlugByUrl, replaceEmojisByUnicode, convertToIsoString } = require('../utils');
+const { convertToIsoString, displayNameToUserName } = require('../utils');
+const { categoriesMapping } = require('../mappings');
 
 module.exports = {
   name: 'calendar',
-  mixins: [SpaceManagerMixin, HumHubImporterMixin],
+  mixins: [SpaceManagerMixin, HumHubImporterMixin, DiscourseMixin, PostFormatterMixin],
   settings: {
     source: {
       humhub: {
@@ -18,23 +20,44 @@ module.exports = {
   },
   methods: {
     async migrate(data) {
-      // const humhubSpace = this.getSpaceByContainerId(data.content.metadata.contentcontainer_id);
-      // if (!humhubSpace) return false;
-      // const circleExist = await this.broker.call('ldp.resource.exist', {
-      //   resourceUri: humhubSpace.circleUri,
-      //   webId: 'system'
-      // });
-      // return({
-      //   type: 'pair:Event',
-      //   'pair:label': data.title,
-      //   'pair:description': replaceEmojisByUnicode(data.description),
-      //   'pair:startDate': convertToIsoString(data.start_datetime),
-      //   'pair:endDate': convertToIsoString(data.end_datetime),
-      //   'pair:concerns': circleExist ? humhubSpace.circleUri : urlJoin(CONFIG.HOME_URL, 'circles', 'jardiniers-du-nous'),
-      //   'pair:involves': data.participants.attending.map(user => urlJoin(CONFIG.HOME_URL, 'users', getSlugByUrl(user.url))),
-      //   'pair:webPage': urlJoin(this.settings.source.humhub.baseUrl, data.content.metadata.url),
-      //   'dc:creator': urlJoin(CONFIG.HOME_URL, 'users', getSlugByUrl(data.content.metadata.created_by.url))
-      // })
+      const space = this.getSpaceByContainerId(data.content.metadata.contentcontainer_id);
+      const username = displayNameToUserName(data.content.metadata.created_by.display_name);
+
+      const message = await this.formatMessage(data.description, data.content.files);
+
+      // prettier-ignore
+      const eventTag = `[event start="${data.start_datetime.slice(0, -3)}" end="${data.end_datetime.slice(0,-3)}" status="public" name="${data.title}" timezone="Europe/Paris"]\n[/event]`;
+
+      this.logger.info(`Importing event "${data.title}"...`);
+
+      const post = await this.fetchDiscourse(`/posts.json`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Api-Username': username
+        },
+        body: JSON.stringify({
+          title: data.title,
+          raw: eventTag + '\n\n' + message,
+          category: categoriesMapping[space.id],
+          created_at: convertToIsoString(data.content.metadata.created_at)
+          // external_id: data.content.metadata.guid
+        })
+      });
+
+      if (post) {
+        const comments = await this.getComments(data.id, 'humhub%5Cmodules%5Ccalendar%5Cmodels%5CCalendarEntry');
+
+        if (comments) {
+          this.logger.info(`Importing ${comments.length} comments...`);
+
+          for (const comment of comments) {
+            await this.postComment(post.topic_id, comment);
+          }
+        } else {
+          this.logger.warn(`Could not fetch comments for topic "${matches[1]}"`);
+        }
+      }
     }
   }
 };

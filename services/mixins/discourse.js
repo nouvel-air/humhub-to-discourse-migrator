@@ -27,7 +27,8 @@ module.exports = {
           }
         } else {
           if (response.status === 429) {
-            this.logger.warn(`Rate limit hit for ${path}. Waiting 5s before retry...`);
+            const body = await response.text();
+            this.logger.warn(`Rate limit hit for ${path}. Error: ${body}. Waiting 5s before retry...`);
             await delay(5000);
             return await this.fetchDiscourse(path, options);
           } else if (response.status === 422) {

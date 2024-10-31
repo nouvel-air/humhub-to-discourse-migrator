@@ -1,27 +1,55 @@
 [![Moleculer](https://badgen.net/badge/Powered%20by/Moleculer/0e83cd)](https://moleculer.services)
 
-# humhub-to-discourse
+# HumHum to Discourse Migrator
 
-This is a [Moleculer](https://moleculer.services/)-based microservices project. Generated with the [Moleculer CLI](https://moleculer.services/docs/0.14/moleculer-cli.html).
+This is a very rough migrator, which has been used so far with https://forum.jardiniersdunous.org
+
+Below are some instructions on how to make it work. Use at your own risk ! ;)
 
 ## Usage
 
-Start the project with `npm run dev` command.
-In the terminal, try the following commands:
+Copy the `.env` file to `.env.local` and setup your keys and URLs.
 
--   `nodes` - List all connected nodes.
--   `actions` - List all registered service actions.
+In your Discourse instance, go to the Parameters > Rate limits, and remove as many limits as possible.
 
-## Useful links
+## Import users
 
--   Moleculer website: https://moleculer.services/
--   Moleculer Documentation: https://moleculer.services/docs/0.14/
+If you want to show the user's location, you will need to install the [Location plugin](https://github.com/paviliondev/discourse-locations)
 
-## NPM scripts
+```
+call space.freshImport
+```
 
--   `npm run dev`: Start development mode (load all services locally with hot-reload & REPL)
--   `npm run start`: Start production mode (set `SERVICES` env variable to load certain services)
--   `npm run cli`: Start a CLI and connect to production. Don't forget to set production namespace with `--ns` argument in script
--   `npm run lint`: Run ESLint
--   `npm run ci`: Run continuous test mode with watching
--   `npm test`: Run tests & generate coverage report
+## Import group members
+
+Create groups in your Discourse instance.
+
+Edit the `groupsMapping` and `groupsNameMapping` object in the [mappings.js](./mappings.js) file.
+
+```
+call space.freshImport
+```
+
+## Import posts
+
+Create categories in your Discourse instance.
+
+Edit the `categoriesMapping` object in the [mappings.js](./mappings.js) file.
+
+```
+call post.freshImport
+```
+
+## Import events
+
+If you want to use the calendar, you will need to install the official [Calendar plugin](https://github.com/discourse/discourse-calendar)
+
+```
+call calendar.freshImport
+```
+
+## Import wiki pages
+
+```
+call wiki.freshImport
+```

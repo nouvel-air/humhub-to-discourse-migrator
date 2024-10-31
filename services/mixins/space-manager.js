@@ -1,7 +1,3 @@
-const urlJoin = require('url-join');
-const CONFIG = require('../../config');
-const { getSlugByUrl } = require('../../utils');
-
 const SpaceManagerMixin = {
   created() {
     this.humhubSpaces = [];

@@ -21,7 +21,7 @@ module.exports = {
       humhub: {
         baseUrl: null,
         jwtToken: null,
-        type: null, // 'user', 'space', 'calendar', 'post'
+        type: null, // 'user', 'space', 'calendar', 'post', 'wiki'
         containerId: null
       },
       fieldsMapping: {
@@ -93,10 +93,17 @@ module.exports = {
       // Append the members to the result
       // if (this.settings.source.humhub.type === 'space') {
       //   for (const key of data.keys()) {
-      //     // TODO use the list method but avoid a loop ? Maybe set another importer for memberships
-      //     // Currently if there is more than 100 members, it will fail to get them all
-      //     const members = await this.fetch(urlJoin(url, `${data[key].id}`, 'membership'));
-      //     data[key].members = members.results;
+      //     let page = 0,
+      //       members;
+      //     data[key].members = [];
+      //     do {
+      //       page = page + 1;
+      //       this.logger.info('Fetching page ' + page, urlJoin(url, `${data[key].id}`, 'membership') + `?page=${page}`);
+      //       // TODO use the list method but avoid a loop ? Maybe set another importer for memberships
+      //       // Currently if there is more than 100 members, it will fail to get them all
+      //       members = await this.fetch(urlJoin(url, `${data[key].id}`, 'membership') + `?page=${page}`);
+      //       data[key].members = [...data[key].members, ...members.results];
+      //     } while (members.pages > page);
       //   }
       // }
 
@@ -106,14 +113,28 @@ module.exports = {
       const results = await this.fetch(url);
 
       // Append the members to the result
-      if (this.settings.source.humhub.type === 'space' && results) {
-        // TODO use the list method but avoid a loop ? Maybe set another importer for memberships
-        // Currently if there is more than 100 members, it will fail to get them all
-        const members = await this.fetch(urlJoin(url, 'membership'));
-        results.members = members.results;
-      }
+      // if (this.settings.source.humhub.type === 'space' && results) {
+      //   let page = 0,
+      //     members;
+      //   results.members = [];
+      //   do {
+      //     page = page + 1;
+      //     this.logger.info('Fetching page ' + page, urlJoin(url, 'membership') + `?page=${page}`);
+      //     // TODO use the list method but avoid a loop ? Maybe set another importer for memberships
+      //     // Currently if there is more than 100 members, it will fail to get them all
+      //     members = await this.fetch(urlJoin(url, 'membership') + `?page=${page}`);
+      //     results.members = [...results.members, ...members.results];
+      //   } while (members.pages > page);
+      // }
 
       return results;
+    },
+    async getComments(objectId, objectModel) {
+      const comments = await this.fetch(
+        urlJoin(this.settings.source.humhub.baseUrl, 'api/v1/comment/find-by-object') +
+          `?objectModel=${objectModel}&objectId=${objectId}`
+      );
+      return comments.results;
     }
   }
 };

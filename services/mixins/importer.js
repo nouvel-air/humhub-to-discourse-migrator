@@ -138,7 +138,7 @@ module.exports = {
         if (response.ok) {
           return await response.json();
         } else {
-          console.log('fetch fail', response);
+          this.logger.error(`Fetch failed when getting ${url}`);
         }
         return false;
       } else if (param.startsWith('http')) {
@@ -148,7 +148,7 @@ module.exports = {
         if (response.ok) {
           return await response.json();
         } else {
-          console.log('fetch fail', response);
+          this.logger.error(`Fetch failed when getting ${url}`);
         }
         return false;
       }
