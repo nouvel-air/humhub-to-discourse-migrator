@@ -55,6 +55,8 @@ If you want to use the calendar, you will need to install the official [Calendar
 call calendar.freshImport
 ```
 
+> At the moment, attendees are not migrated. There is a field `participants.attending` in the HumHub event that contain the list of participants and their `display_name`.
+
 ### Migrate wiki pages
 
 ```
